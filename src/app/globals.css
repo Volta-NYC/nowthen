@@ -2,11 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  padding: 0;
-  margin: 0;
+:root {
+  --paper: #f4efe6;
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: theme("colors.bone.100");
+    color: theme("colors.ink.DEFAULT");
+    font-family: theme("fontFamily.sans");
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    background: theme("colors.ink.DEFAULT");
+    color: theme("colors.bone.50");
+  }
+  h1, h2, h3 {
+    font-family: theme("fontFamily.display");
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
 }
+
+@layer components {
+  .eyebrow {
+    @apply font-sans uppercase text-[0.7rem] tracking-widest text-ink-muted;
+  }
+  .shell {
+    @apply mx-auto w-full max-w-site px-5 sm:px-8 lg:px-12;
+  }
+  /* The brass hairline divider used throughout */
+  .rule {
+    @apply h-px w-full bg-ink/10;
+  }
+  /* Link underline that draws in on hover */
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+  }
+  .btn-ink {
+    @apply inline-flex items-center justify-center gap-2 bg-ink px-8 py-4 font-sans text-[0.72rem] uppercase tracking-widest text-bone-50 transition-colors duration-500 hover:bg-brass;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 border border-ink/30 px-8 py-4 font-sans text-[0.72rem] uppercase tracking-widest text-ink transition-colors duration-500 hover:border-ink hover:bg-ink hover:text-bone-50;
+  }
+}
+
+/* Subtle paper grain laid over the whole experience for warmth/depth */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hide scrollbars on horizontal rails while keeping scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
