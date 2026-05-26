@@ -15,11 +15,7 @@ export default function ShopGrid({ initialFilter = "all" as FilterKey, hideContr
 
   const filtered = useMemo(() => {
     let r: Product[] = products
-    if (filter === "now" || filter === "then") {
-      r = r.filter((p) => p.era === filter)
-    } else if (filter !== "all") {
-      r = r.filter((p) => p.collections.includes(filter))
-    }
+    if (filter !== "all") r = r.filter((p) => p.collections.includes(filter))
     if (sort === "low") r = [...r].sort((a, b) => a.price - b.price)
     if (sort === "high") r = [...r].sort((a, b) => b.price - a.price)
     return r
@@ -31,9 +27,6 @@ export default function ShopGrid({ initialFilter = "all" as FilterKey, hideContr
         <div className="shell flex flex-col gap-6 border-y border-ink/10 py-5 md:flex-row md:items-center md:justify-between">
           <div className="-mx-1 flex flex-wrap items-center gap-x-1 gap-y-2 text-[0.72rem] uppercase tracking-widest">
             <Chip active={filter === "all"} onClick={() => setFilter("all")}>All</Chip>
-            <Chip active={filter === "now"} onClick={() => setFilter("now")}>Now</Chip>
-            <Chip active={filter === "then"} onClick={() => setFilter("then")}>Then</Chip>
-            <span className="mx-2 h-3 w-px bg-ink/20" />
             {cols.map((c) => (
               <Chip key={c.slug} active={filter === c.slug} onClick={() => setFilter(c.slug)}>
                 {c.name}
