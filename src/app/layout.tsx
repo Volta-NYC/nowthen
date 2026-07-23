@@ -1,10 +1,7 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { Fraunces, Jost, Pinyon_Script } from "next/font/google"
-import Navbar from "@/lib/components/navbar"
-import Footer from "@/lib/components/footer"
-import CartDrawer from "@/lib/components/cart-drawer"
-import ScrollProgress from "@/lib/components/scroll-progress"
+import SiteChrome from "@/lib/components/site-chrome"
 import { CartProvider } from "@/lib/cart/cart-context"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import { site } from "@/lib/content/site"
@@ -53,11 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="grain min-h-screen bg-bone-100 antialiased">
         <AuthProvider>
           <CartProvider>
-            <ScrollProgress />
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-            <CartDrawer />
+            <SiteChrome>{children}</SiteChrome>
           </CartProvider>
         </AuthProvider>
       </body>
