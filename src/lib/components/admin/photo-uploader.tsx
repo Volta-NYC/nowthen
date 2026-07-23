@@ -61,7 +61,11 @@ export default function PhotoUploader({ itemId, paths, onChange }: PhotoUploader
 
   const handleRemove = async (path: string) => {
     const supabase = createClient()
-    await supabase.storage.from(BUCKET).remove([path])
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove([path])
+    if (removeError) {
+      setError(removeError.message)
+      return
+    }
     onChange(paths.filter((p) => p !== path))
   }
 
