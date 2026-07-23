@@ -38,6 +38,7 @@ export default function InventoryForm({ item }: { item: InventoryItem }) {
   const [deleting, setDeleting] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstRender = useRef(true)
+  const skipNextAutosave = useRef(false)
 
   const persist = async (updates: InventoryItemFields) => {
     setSaveState("saving")
@@ -54,6 +55,10 @@ export default function InventoryForm({ item }: { item: InventoryItem }) {
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
+      return
+    }
+    if (skipNextAutosave.current) {
+      skipNextAutosave.current = false
       return
     }
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -77,6 +82,7 @@ export default function InventoryForm({ item }: { item: InventoryItem }) {
 
   const handlePublish = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    skipNextAutosave.current = true
     const next = { ...fields, status: "posted" as const }
     setFields(next)
     persist(toFields(next))
@@ -86,6 +92,7 @@ export default function InventoryForm({ item }: { item: InventoryItem }) {
     if (!window.confirm(`Permanently delete "${fields.item_name}"? This cannot be undone.`)) {
       return
     }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     setDeleting(true)
     const result = await deleteItem(item.id)
     if (result.error) {
