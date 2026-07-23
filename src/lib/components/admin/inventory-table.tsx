@@ -1,13 +1,49 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   bulkUpdateStatus,
   type InventoryListItem,
   type InventoryStatus,
 } from "@/lib/admin/inventory-actions"
 import { STATUS_OPTIONS } from "@/lib/admin/inventory-types"
+import { createClient } from "@/lib/supabase/client"
+
+const BUCKET = "inventory-photos"
+
+function RowThumbnail({ photos }: { photos: string[] | null }) {
+  const path = photos?.[0] ?? null
+  const [signedUrl, setSignedUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setSignedUrl(null)
+    if (!path) return
+
+    const supabase = createClient()
+
+    async function loadUrl() {
+      const { data } = await supabase.storage.from(BUCKET).createSignedUrl(path!, 3600)
+      if (!cancelled) setSignedUrl(data?.signedUrl ?? null)
+    }
+
+    loadUrl()
+
+    return () => {
+      cancelled = true
+    }
+  }, [path])
+
+  return (
+    <div className="h-10 w-10 bg-bone-200">
+      {signedUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={signedUrl} alt="" className="h-full w-full object-cover" />
+      )}
+    </div>
+  )
+}
 
 export default function InventoryTable({ items }: { items: InventoryListItem[] }) {
   const [filter, setFilter] = useState("")
@@ -105,6 +141,7 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
                 onChange={toggleAll}
               />
             </th>
+            <th className="py-2">Photo</th>
             <th className="py-2">Name</th>
             <th className="py-2 tabular-nums">Price</th>
             <th className="py-2 tabular-nums">Stock</th>
@@ -120,6 +157,9 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
                   checked={selected.has(item.id)}
                   onChange={() => toggle(item.id)}
                 />
+              </td>
+              <td className="py-3">
+                <RowThumbnail photos={item.photos} />
               </td>
               <td className="py-3">
                 <Link href={`/admin/inventory/${item.id}`} className="link-underline text-ink">
@@ -139,7 +179,7 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
           ))}
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={5} className="py-8 text-center text-ink-muted">
+              <td colSpan={6} className="py-8 text-center text-ink-muted">
                 No items found.
               </td>
             </tr>
