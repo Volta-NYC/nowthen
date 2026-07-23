@@ -98,7 +98,8 @@ export async function deleteItem(id: string): Promise<ActionResult<{ id: string 
 
   const photos = (item?.photos ?? []) as string[]
   if (photos.length > 0) {
-    await supabase.storage.from("inventory-photos").remove(photos)
+    const { error: removeError } = await supabase.storage.from("inventory-photos").remove(photos)
+    if (removeError) return { error: removeError.message }
   }
 
   const { error } = await supabase.from("inventory_items").delete().eq("id", id)
