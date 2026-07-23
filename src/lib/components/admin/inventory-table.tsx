@@ -14,6 +14,7 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<InventoryStatus>(STATUS_OPTIONS[0])
   const [applying, setApplying] = useState(false)
+  const [applyError, setApplyError] = useState<string | null>(null)
   const [localItems, setLocalItems] = useState(items)
 
   const filtered = useMemo(
@@ -42,15 +43,18 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
   const applyBulk = async () => {
     if (selected.size === 0) return
     setApplying(true)
+    setApplyError(null)
     const ids = Array.from(selected)
     const result = await bulkUpdateStatus(ids, bulkStatus)
     setApplying(false)
-    if (!result.error) {
-      setLocalItems((prev) =>
-        prev.map((item) => (selected.has(item.id) ? { ...item, status: bulkStatus } : item)),
-      )
-      setSelected(new Set())
+    if (result.error) {
+      setApplyError(result.error)
+      return
     }
+    setLocalItems((prev) =>
+      prev.map((item) => (selected.has(item.id) ? { ...item, status: bulkStatus } : item)),
+    )
+    setSelected(new Set())
   }
 
   return (
@@ -87,6 +91,7 @@ export default function InventoryTable({ items }: { items: InventoryListItem[] }
           >
             {applying ? "Applying…" : "Apply"}
           </button>
+          {applyError && <span className="text-sm text-clay">{applyError}</span>}
         </div>
       )}
 
