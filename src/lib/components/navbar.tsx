@@ -6,6 +6,7 @@ import clsx from "clsx"
 import Wordmark from "./wordmark"
 import { primaryNav, secondaryNav, site } from "@/lib/content/site"
 import { useCart } from "@/lib/cart/cart-context"
+import { useAuth } from "@/lib/auth/auth-context"
 
 // The owner wrote: "the layer cake [hamburger] is nice, but could do
 // something more traditional." We give them both — a slim editorial top
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { count, open: openCart } = useCart()
+  const { session, signOut } = useAuth()
   // Avoid hydration mismatch — only show the live count once the cart
   // has hydrated from localStorage on the client.
   const [mounted, setMounted] = useState(false)
@@ -69,6 +71,26 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-5 text-ink">
+            {session ? (
+              <div className="hidden items-center gap-3 sm:flex">
+                <span className="text-[0.7rem] uppercase tracking-widest text-ink-muted">
+                  {session.user.email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="text-[0.7rem] uppercase tracking-widest text-ink hover:text-brass"
+                >
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden text-[0.7rem] uppercase tracking-widest text-ink hover:text-brass sm:inline-block"
+              >
+                Login
+              </Link>
+            )}
             <Link
               href="/shop"
               aria-label="Search the shop"
@@ -152,6 +174,32 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
+
+          <p className="eyebrow mt-12">Account</p>
+          <div className="mt-4">
+            {session ? (
+              <div className="flex flex-col gap-2">
+                <span className="text-sm text-ink-soft">{session.user.email}</span>
+                <button
+                  onClick={() => {
+                    signOut()
+                    setOpen(false)
+                  }}
+                  className="w-fit text-sm text-ink hover:text-brass link-underline"
+                >
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                onClick={() => setOpen(false)}
+                href="/login"
+                className="text-sm text-ink hover:text-brass link-underline"
+              >
+                Login
+              </Link>
+            )}
+          </div>
 
           <div className="rule mt-12" />
           <div className="mt-6 space-y-1 text-sm text-ink-muted">
