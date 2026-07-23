@@ -6,6 +6,7 @@ import Footer from "@/lib/components/footer"
 import CartDrawer from "@/lib/components/cart-drawer"
 import ScrollProgress from "@/lib/components/scroll-progress"
 import { CartProvider } from "@/lib/cart/cart-context"
+import { AuthProvider } from "@/lib/auth/auth-context"
 import { site } from "@/lib/content/site"
 
 // Display: Fraunces (variable, opsz) — characterful but workable.
@@ -50,13 +51,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${fraunces.variable} ${jost.variable} ${pinyon.variable}`}
     >
       <body className="grain min-h-screen bg-bone-100 antialiased">
-        <CartProvider>
-          <ScrollProgress />
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <CartDrawer />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <ScrollProgress />
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <CartDrawer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )
