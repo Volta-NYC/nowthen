@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import {
   deleteItem,
-  STATUS_OPTIONS,
   updateItem,
   type InventoryItem,
   type InventoryItemFields,
 } from "@/lib/admin/inventory-actions"
+import { STATUS_OPTIONS } from "@/lib/admin/inventory-types"
 import PhotoUploader from "./photo-uploader"
 
 function arrayToText(value: string[] | null): string {

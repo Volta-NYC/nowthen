@@ -4,10 +4,10 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 import {
   bulkUpdateStatus,
-  STATUS_OPTIONS,
   type InventoryListItem,
   type InventoryStatus,
 } from "@/lib/admin/inventory-actions"
+import { STATUS_OPTIONS } from "@/lib/admin/inventory-types"
 
 export default function InventoryTable({ items }: { items: InventoryListItem[] }) {
   const [filter, setFilter] = useState("")
