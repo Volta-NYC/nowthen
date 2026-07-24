@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import clsx from "clsx"
-import type { Product } from "@/lib/content/products"
+import type { Product } from "@/lib/content/product-types"
 import { useCart } from "@/lib/cart/cart-context"
 import SizeGuide from "./size-guide"
 
@@ -22,7 +22,14 @@ export default function ProductActions({ product }: { product: Product }) {
       return
     }
     setError(null)
-    add({ slug: product.slug, size, variant })
+    add({
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      size,
+      variant,
+    })
   }
 
   return (

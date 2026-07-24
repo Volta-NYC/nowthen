@@ -8,10 +8,17 @@ import {
   useMemo,
   useState,
 } from "react"
-import { findProduct } from "@/lib/content/products"
 
+// A cart line carries a snapshot of what the customer actually saw and agreed
+// to — name, price, and image at add-to-cart time — rather than re-deriving
+// them from the catalog on every render. Two reasons: the catalog now lives in
+// Postgres and can't be read synchronously from a client component, and a bag
+// should not silently reprice itself when the owner edits an item in /admin.
 export type CartLine = {
   slug: string
+  name: string
+  price: number
+  image?: string
   size?: string
   variant?: string
   qty: number
@@ -43,6 +50,12 @@ const STORAGE_KEY = "nowthen.cart.v1"
 const sameLine = (a: Partial<CartLine>, b: Partial<CartLine>) =>
   a.slug === b.slug && a.size === b.size && a.variant === b.variant
 
+const isRenderable = (l: CartLine) =>
+  typeof l?.slug === "string" &&
+  typeof l?.name === "string" &&
+  typeof l?.price === "number" &&
+  Number.isFinite(l.price)
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([])
   const [isOpen, setOpen] = useState(false)
@@ -53,7 +66,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setLines(JSON.parse(raw) as CartLine[])
+      // Carts saved before lines carried a snapshot have no name or price and
+      // can't be rendered or totalled. Drop those entries rather than showing
+      // a blank row with a $0 subtotal.
+      if (raw) setLines((JSON.parse(raw) as CartLine[]).filter(isRenderable))
     } catch {
       /* corrupt storage — treat as empty */
     }
@@ -98,11 +114,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clear = useCallback(() => setLines([]), [])
 
   const subtotal = useMemo(
-    () =>
-      lines.reduce((sum, l) => {
-        const p = findProduct(l.slug)
-        return sum + (p ? p.price * l.qty : 0)
-      }, 0),
+    () => lines.reduce((sum, l) => sum + l.price * l.qty, 0),
     [lines],
   )
   const count = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines])

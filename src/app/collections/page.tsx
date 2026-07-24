@@ -2,11 +2,18 @@ import Image from "next/image"
 import Link from "next/link"
 import PageHeading from "@/lib/components/page-heading"
 import { collections } from "@/lib/content/collections"
-import { productsByCollection } from "@/lib/content/products"
+import { getProducts } from "@/lib/content/products-db"
 
 export const metadata = { title: "Collections" }
 
-export default function CollectionsPage() {
+export const revalidate = 60
+
+export default async function CollectionsPage() {
+  // One query, grouped in memory — cheaper than six round trips.
+  const all = await getProducts()
+  const byCollection = (slug: string) =>
+    all.filter((p) => p.collections.includes(slug)).slice(0, 4)
+
   return (
     <>
       <PageHeading
@@ -16,7 +23,7 @@ export default function CollectionsPage() {
       />
       <section className="shell space-y-24 pb-24">
         {collections.map((c, i) => {
-          const items = productsByCollection(c.slug).slice(0, 4)
+          const items = byCollection(c.slug)
           const flip = i % 2 === 1
           return (
             <article
@@ -51,13 +58,15 @@ export default function CollectionsPage() {
                       href={`/shop/${p.slug}`}
                       className="group relative block aspect-[4/5] overflow-hidden bg-bone-200"
                     >
-                      <Image
-                        src={p.images[0]}
-                        alt={p.name}
-                        fill
-                        sizes="(min-width:768px) 25vw, 45vw"
-                        className="object-cover transition-transform duration-1000 ease-boutique group-hover:scale-[1.04]"
-                      />
+                      {p.images[0] && (
+                        <Image
+                          src={p.images[0]}
+                          alt={p.name}
+                          fill
+                          sizes="(min-width:768px) 25vw, 45vw"
+                          className="object-cover transition-transform duration-1000 ease-boutique group-hover:scale-[1.04]"
+                        />
+                      )}
                       <div className="absolute inset-x-0 bottom-0 flex items-baseline justify-between bg-gradient-to-t from-ink/80 via-ink/0 to-transparent p-3 text-bone-50">
                         <span className="font-display text-sm">{p.name}</span>
                         <span className="text-[0.7rem]">${p.price}</span>

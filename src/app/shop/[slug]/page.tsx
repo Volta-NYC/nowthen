@@ -3,25 +3,27 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import ProductCarousel from "@/lib/components/product-carousel"
 import ProductActions from "@/lib/components/product-actions"
-import { products, findProduct } from "@/lib/content/products"
+import { findProduct, getProducts, getProductSlugs } from "@/lib/content/products-db"
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }))
+export const revalidate = 60
+
+export async function generateStaticParams() {
+  return (await getProductSlugs()).map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const p = findProduct(slug)
+  const p = await findProduct(slug)
   if (!p) return {}
   return { title: p.name, description: p.blurb }
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const product = findProduct(slug)
+  const product = await findProduct(slug)
   if (!product) notFound()
 
-  const related = products
+  const related = (await getProducts())
     .filter((p) => p.slug !== product.slug && p.collections.some((c) => product.collections.includes(c)))
     .slice(0, 4)
 
@@ -130,13 +132,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {related.map((r) => (
                 <Link key={r.slug} href={`/shop/${r.slug}`} className="group block">
                   <div className="relative aspect-[4/5] overflow-hidden bg-bone-200">
-                    <Image
-                      src={r.images[0]}
-                      alt={r.name}
-                      fill
-                      sizes="(min-width:640px) 22vw, 45vw"
-                      className="object-cover transition-transform duration-1000 ease-boutique group-hover:scale-[1.04]"
-                    />
+                    {r.images[0] && (
+                      <Image
+                        src={r.images[0]}
+                        alt={r.name}
+                        fill
+                        sizes="(min-width:640px) 22vw, 45vw"
+                        className="object-cover transition-transform duration-1000 ease-boutique group-hover:scale-[1.04]"
+                      />
+                    )}
                   </div>
                   <div className="mt-3 flex items-baseline justify-between">
                     <p className="truncate font-display text-base">{r.name}</p>

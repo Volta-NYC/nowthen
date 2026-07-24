@@ -4,22 +4,32 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState, useMemo } from "react"
 import clsx from "clsx"
-import { products, type Product } from "@/lib/content/products"
+import type { Product } from "@/lib/content/product-types"
 import { collections as cols } from "@/lib/content/collections"
 
 type FilterKey = "all" | "now" | "then" | string
 
-export default function ShopGrid({ initialFilter = "all" as FilterKey, hideControls = false }: { initialFilter?: FilterKey; hideControls?: boolean }) {
+// `items` is fetched server-side and passed in, so this stays a pure
+// presentational client component — filtering and sorting remain instant.
+export default function ShopGrid({
+  items,
+  initialFilter = "all" as FilterKey,
+  hideControls = false,
+}: {
+  items: Product[]
+  initialFilter?: FilterKey
+  hideControls?: boolean
+}) {
   const [filter, setFilter] = useState<FilterKey>(initialFilter)
   const [sort, setSort] = useState<"curated" | "low" | "high">("curated")
 
   const filtered = useMemo(() => {
-    let r: Product[] = products
+    let r: Product[] = items
     if (filter !== "all") r = r.filter((p) => p.collections.includes(filter))
     if (sort === "low") r = [...r].sort((a, b) => a.price - b.price)
     if (sort === "high") r = [...r].sort((a, b) => b.price - a.price)
     return r
-  }, [filter, sort])
+  }, [items, filter, sort])
 
   return (
     <section>
@@ -52,13 +62,15 @@ export default function ShopGrid({ initialFilter = "all" as FilterKey, hideContr
         {filtered.map((p) => (
           <Link key={p.slug} href={`/shop/${p.slug}`} className="group block">
             <div className="relative aspect-[4/5] overflow-hidden bg-bone-200">
-              <Image
-                src={p.images[0]}
-                alt={p.name}
-                fill
-                sizes="(min-width:1024px) 22vw, (min-width:640px) 30vw, 45vw"
-                className="object-cover transition-transform duration-[1200ms] ease-boutique group-hover:scale-[1.04]"
-              />
+              {p.images[0] && (
+                <Image
+                  src={p.images[0]}
+                  alt={p.name}
+                  fill
+                  sizes="(min-width:1024px) 22vw, (min-width:640px) 30vw, 45vw"
+                  className="object-cover transition-transform duration-[1200ms] ease-boutique group-hover:scale-[1.04]"
+                />
+              )}
               {p.images[1] && (
                 <Image
                   src={p.images[1]}

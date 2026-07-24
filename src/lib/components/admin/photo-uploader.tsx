@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-
-const BUCKET = "inventory-photos"
+import { PHOTO_BUCKET as BUCKET, photoUrl } from "@/lib/content/photo-url"
 
 type PhotoUploaderProps = {
   itemId: string
@@ -12,31 +11,8 @@ type PhotoUploaderProps = {
 }
 
 export default function PhotoUploader({ itemId, paths, onChange }: PhotoUploaderProps) {
-  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    const supabase = createClient()
-
-    async function loadUrls() {
-      const entries = await Promise.all(
-        paths.map(async (path) => {
-          const { data } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
-          return [path, data?.signedUrl ?? ""] as const
-        }),
-      )
-      if (!cancelled) setSignedUrls(Object.fromEntries(entries))
-    }
-
-    if (paths.length > 0) loadUrls()
-    else setSignedUrls({})
-
-    return () => {
-      cancelled = true
-    }
-  }, [paths])
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -83,10 +59,8 @@ export default function PhotoUploader({ itemId, paths, onChange }: PhotoUploader
       <div className="mt-3 flex flex-wrap gap-3">
         {paths.map((path, i) => (
           <div key={path} className="relative h-24 w-24 border border-ink/15 bg-bone-200">
-            {signedUrls[path] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={signedUrls[path]} alt="" className="h-full w-full object-cover" />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoUrl(path)} alt="" className="h-full w-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-ink/70 px-1 py-0.5 text-[0.6rem] text-bone-50">
               <button
                 type="button"

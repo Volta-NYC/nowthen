@@ -8,6 +8,9 @@ import ParallaxImage from "@/lib/components/parallax-image"
 import { collections } from "@/lib/content/collections"
 import { journal } from "@/lib/content/journal"
 import { site } from "@/lib/content/site"
+import { getHomeGrid, getProducts } from "@/lib/content/products-db"
+
+export const revalidate = 60
 
 const designers = [
   "Seek Collective",
@@ -20,14 +23,16 @@ const designers = [
   "House Beaders",
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [gridItems, allItems] = await Promise.all([getHomeGrid(), getProducts()])
+
   return (
     <>
       <Hero />
 
       <Marquee items={designers} />
 
-      <FeaturedGrid />
+      <FeaturedGrid items={gridItems} total={allItems.length} />
 
       {/* The "Now / Then" duality — the conceptual heart of the brand */}
       <section className="bg-ink text-bone-50">

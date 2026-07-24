@@ -4,7 +4,6 @@ import Image from "next/image"
 import Link from "next/link"
 import clsx from "clsx"
 import { useCart } from "@/lib/cart/cart-context"
-import { findProduct } from "@/lib/content/products"
 
 export default function CartDrawer() {
   const { isOpen, close, lines, count, subtotal, setQty, remove } = useCart()
@@ -64,33 +63,33 @@ export default function CartDrawer() {
           <>
             <ul className="flex-1 divide-y divide-ink/10 overflow-y-auto px-7">
               {lines.map((l, i) => {
-                const p = findProduct(l.slug)
-                if (!p) return null
                 return (
                   <li key={`${l.slug}-${l.size}-${l.variant}-${l.added}`} className="flex gap-5 py-6">
                     <Link
-                      href={`/shop/${p.slug}`}
+                      href={`/shop/${l.slug}`}
                       onClick={close}
                       className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-bone-200"
                     >
-                      <Image
-                        src={p.images[0]}
-                        alt={p.name}
-                        fill
-                        sizes="96px"
-                        className="object-cover"
-                      />
+                      {l.image && (
+                        <Image
+                          src={l.image}
+                          alt={l.name}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      )}
                     </Link>
                     <div className="flex flex-1 flex-col">
                       <div className="flex items-baseline justify-between gap-3">
                         <Link
-                          href={`/shop/${p.slug}`}
+                          href={`/shop/${l.slug}`}
                           onClick={close}
                           className="font-display text-base leading-tight hover:text-brass"
                         >
-                          {p.name}
+                          {l.name}
                         </Link>
-                        <span className="shrink-0 text-sm tabular-nums">${p.price * l.qty}</span>
+                        <span className="shrink-0 text-sm tabular-nums">${l.price * l.qty}</span>
                       </div>
                       {(l.size || l.variant) && (
                         <p className="mt-1 text-[0.7rem] uppercase tracking-widest text-ink-muted">

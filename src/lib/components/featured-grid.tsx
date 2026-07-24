@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import clsx from "clsx"
-import { products, homeGridOrder, type Product } from "@/lib/content/products"
+import type { Product } from "@/lib/content/product-types"
 import Reveal from "./reveal"
 
 // The owner's explicit request: a grid of "featured" boxes that reveal
@@ -15,7 +15,6 @@ const widerSlots = new Set<number>([0, 9, 18, 27])
 
 function FeaturedCard({ p, wider }: { p: Product; wider?: boolean }) {
   const isBleed =
-    !p.images[0].includes("ghost") && // (kept for future flag)
     /two-tone-pants|fragrance|tiger|jaguar|fox|lightning|bib|gold-dome|coral|audette|denim|floral|gingham|peach|vintage|soul/.test(
       p.slug,
     )
@@ -24,13 +23,15 @@ function FeaturedCard({ p, wider }: { p: Product; wider?: boolean }) {
       href={`/shop/${p.slug}`}
       className="group relative block aspect-square overflow-hidden"
     >
-      <Image
-        src={p.images[0]}
-        alt={p.name}
-        fill
-        sizes={wider ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, 50vw"}
-        className="object-cover transition-transform duration-[1400ms] ease-boutique group-hover:scale-[1.04]"
-      />
+      {p.images[0] && (
+        <Image
+          src={p.images[0]}
+          alt={p.name}
+          fill
+          sizes={wider ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, 50vw"}
+          className="object-cover transition-transform duration-[1400ms] ease-boutique group-hover:scale-[1.04]"
+        />
+      )}
 
       {/* The reveal: a thin ink veil + centered label, drawing up softly */}
       <div
@@ -61,10 +62,16 @@ function FeaturedCard({ p, wider }: { p: Product; wider?: boolean }) {
   )
 }
 
-export default function FeaturedGrid() {
-  const ordered = homeGridOrder
-    .map((slug) => products.find((p) => p.slug === slug))
-    .filter(Boolean) as Product[]
+// `items` arrives already in the curated order (by `home_grid_position`), and
+// `total` is the full posted-catalog count shown in the footer rail.
+export default function FeaturedGrid({
+  items,
+  total,
+}: {
+  items: Product[]
+  total: number
+}) {
+  const ordered = items
 
   return (
     <section id="featured" className="relative">
@@ -104,7 +111,7 @@ export default function FeaturedGrid() {
       </div>
 
       <div className="shell flex items-center justify-between py-10 text-[0.72rem] uppercase tracking-widest text-ink-muted">
-        <p>1 — {ordered.length} of {products.length}</p>
+        <p>1 — {ordered.length} of {total}</p>
         <Link href="/shop" className="link-underline text-ink">
           Shop the room →
         </Link>

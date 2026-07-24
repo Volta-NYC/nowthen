@@ -1,45 +1,23 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import {
   bulkUpdateStatus,
   type InventoryListItem,
   type InventoryStatus,
 } from "@/lib/admin/inventory-actions"
 import { STATUS_OPTIONS } from "@/lib/admin/inventory-types"
-import { createClient } from "@/lib/supabase/client"
-
-const BUCKET = "inventory-photos"
+import { photoUrl } from "@/lib/content/photo-url"
 
 function RowThumbnail({ photos }: { photos: string[] | null }) {
   const path = photos?.[0] ?? null
-  const [signedUrl, setSignedUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    setSignedUrl(null)
-    if (!path) return
-
-    const supabase = createClient()
-
-    async function loadUrl() {
-      const { data } = await supabase.storage.from(BUCKET).createSignedUrl(path!, 3600)
-      if (!cancelled) setSignedUrl(data?.signedUrl ?? null)
-    }
-
-    loadUrl()
-
-    return () => {
-      cancelled = true
-    }
-  }, [path])
 
   return (
     <div className="h-10 w-10 bg-bone-200">
-      {signedUrl && (
+      {path && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={signedUrl} alt="" className="h-full w-full object-cover" />
+        <img src={photoUrl(path)} alt="" className="h-full w-full object-cover" />
       )}
     </div>
   )

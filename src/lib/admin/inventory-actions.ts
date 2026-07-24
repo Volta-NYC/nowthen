@@ -8,6 +8,17 @@ export type { InventoryStatus, InventoryItem, InventoryListItem, InventoryItemFi
 
 type ActionResult<T> = { data: T; error?: undefined } | { data?: undefined; error: string }
 
+// The storefront reads these rows, so an admin edit has to invalidate the
+// public pages too — otherwise a change sits invisible until the 60s ISR
+// window lapses. `"page"` revalidates every /shop/[slug] instance at once.
+function revalidateStorefront() {
+  revalidatePath("/")
+  revalidatePath("/shop")
+  revalidatePath("/collections")
+  revalidatePath("/collections/[slug]", "page")
+  revalidatePath("/shop/[slug]", "page")
+}
+
 export async function createDraftItem(): Promise<ActionResult<{ id: string }>> {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -31,6 +42,7 @@ export async function updateItem(
   if (error) return { error: error.message }
   revalidatePath("/admin/inventory")
   revalidatePath(`/admin/inventory/${id}`)
+  revalidateStorefront()
   return { data: { id } }
 }
 
@@ -43,6 +55,7 @@ export async function bulkUpdateStatus(
 
   if (error) return { error: error.message }
   revalidatePath("/admin/inventory")
+  revalidateStorefront()
   return { data: { count: ids.length } }
 }
 
@@ -67,5 +80,6 @@ export async function deleteItem(id: string): Promise<ActionResult<{ id: string 
   if (error) return { error: error.message }
 
   revalidatePath("/admin/inventory")
+  revalidateStorefront()
   return { data: { id } }
 }
