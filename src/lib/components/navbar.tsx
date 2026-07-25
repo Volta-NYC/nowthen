@@ -17,7 +17,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { count, open: openCart } = useCart()
-  const { session, signOut } = useAuth()
+  const { session, isAdmin, signOut } = useAuth()
   // Avoid hydration mismatch — only show the live count once the cart
   // has hydrated from localStorage on the client.
   const [mounted, setMounted] = useState(false)
@@ -73,12 +73,26 @@ export default function Navbar() {
           <div className="flex items-center gap-5 text-ink">
             {session ? (
               <div className="hidden items-center gap-3 sm:flex">
-                <span className="text-[0.7rem] uppercase tracking-widest text-ink-muted">
+                {isAdmin && (
+                  <Link
+                    href="/admin/inventory"
+                    className="whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-brass hover:text-ink"
+                  >
+                    Inventory
+                  </Link>
+                )}
+                {/* The email is the widest item here and the least useful —
+                    you know who you are. It yields first as the bar tightens,
+                    so "Log out" never wraps. */}
+                <span
+                  className="hidden max-w-[16ch] truncate text-[0.7rem] uppercase tracking-widest text-ink-muted xl:inline"
+                  title={session.user.email}
+                >
                   {session.user.email}
                 </span>
                 <button
                   onClick={signOut}
-                  className="text-[0.7rem] uppercase tracking-widest text-ink hover:text-brass"
+                  className="whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-ink hover:text-brass"
                 >
                   Log out
                 </button>
@@ -180,6 +194,15 @@ export default function Navbar() {
             {session ? (
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-ink-soft">{session.user.email}</span>
+                {isAdmin && (
+                  <Link
+                    onClick={() => setOpen(false)}
+                    href="/admin/inventory"
+                    className="w-fit text-sm text-brass hover:text-ink link-underline"
+                  >
+                    Inventory
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     signOut()

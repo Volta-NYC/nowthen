@@ -12,6 +12,14 @@ import { createClient } from "@/lib/supabase/client"
 type AuthContextValue = {
   session: Session | null
   loading: boolean
+  /**
+   * The signed-in user's `profiles.role`, or null when signed out or still
+   * loading. Drives UI affordances only — never treat this as authorization.
+   * `src/app/admin/layout.tsx` re-checks the role server-side, and RLS gates
+   * the data itself, so a tampered value here reveals nothing.
+   */
+  role: string | null
+  isAdmin: boolean
   signOut: () => Promise<void>
 }
 
@@ -20,6 +28,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -38,14 +47,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Look the role up per signed-in user. RLS on `profiles` only exposes the
+  // caller's own row, so this can't be used to enumerate anyone else's.
+  const userId = session?.user.id ?? null
+  useEffect(() => {
+    if (!userId) {
+      setRole(null)
+      return
+    }
+
+    let cancelled = false
+    const supabase = createClient()
+
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          // A failed lookup means no admin affordances, never elevated ones.
+          console.error(`[auth] role lookup failed: ${error.message}`)
+          setRole(null)
+          return
+        }
+        setRole((data?.role as string | undefined) ?? null)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
   const signOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     setSession(null)
+    setRole(null)
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signOut }}>
+    <AuthContext.Provider
+      value={{ session, loading, role, isAdmin: role === "admin", signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )
