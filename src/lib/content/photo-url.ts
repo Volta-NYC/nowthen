@@ -1,3 +1,5 @@
+import { supabaseUrl } from "@/lib/supabase/env"
+
 export const PHOTO_BUCKET = "inventory-photos"
 
 /**
@@ -12,7 +14,6 @@ export const PHOTO_BUCKET = "inventory-photos"
  */
 export function photoUrl(pathOrUrl: string): string {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const encoded = pathOrUrl.split("/").map(encodeURIComponent).join("/")
-  return `${base}/storage/v1/object/public/${PHOTO_BUCKET}/${encoded}`
+  return `${supabaseUrl()}/storage/v1/object/public/${PHOTO_BUCKET}/${encoded}`
 }

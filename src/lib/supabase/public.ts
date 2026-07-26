@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { supabasePublishableKey, supabaseUrl } from "./env"
 
 // Anonymous, cookie-free client for public catalog reads.
 //
@@ -8,9 +9,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 // the owner — sees exactly the same catalog, and keeps storefront pages
 // cacheable, since nothing here touches `cookies()`.
 export function createPublicClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  )
+  return createSupabaseClient(supabaseUrl(), supabasePublishableKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 }
