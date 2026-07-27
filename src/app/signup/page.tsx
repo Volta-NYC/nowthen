@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 export default function SignupPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -17,7 +19,7 @@ export default function SignupPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -32,13 +34,25 @@ export default function SignupPage() {
       },
     })
 
-    setLoading(false)
-
     if (signUpError) {
+      setLoading(false)
       setError(signUpError.message)
       return
     }
 
+    // Which of these happens is a project setting, not something the app
+    // controls: with email confirmation on, Supabase returns a user but no
+    // session and sends a link; with it off, the account is live immediately
+    // and a session comes back. Branch on the session rather than assuming
+    // either mode, so toggling the setting never leaves this page telling
+    // people to check an inbox nothing was sent to.
+    if (data.session) {
+      router.push("/")
+      router.refresh()
+      return
+    }
+
+    setLoading(false)
     setSubmitted(true)
   }
 
