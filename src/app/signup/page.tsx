@@ -20,6 +20,16 @@ export default function SignupPage() {
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Without this, the confirmation link is built from the project's
+        // Site URL — one fixed value that can only ever be right for one
+        // environment. Deriving it from the current origin means the link
+        // points back to wherever the user actually signed up: localhost in
+        // development, the preview domain on a preview deploy, production in
+        // production. The origin must still be on Supabase's redirect allow
+        // list, or it silently falls back to Site URL.
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
     })
 
     setLoading(false)
