@@ -8,9 +8,10 @@ export { photoUrl, PHOTO_BUCKET } from "./photo-url"
 // Columns the storefront needs. Explicit rather than `*` so a future
 // back-office column can't accidentally ride along into a client component.
 const STOREFRONT_COLUMNS =
-  "slug, item_name, brand, list_price, from_price, collections, era, palette, blurb, description, details, sizes, variants, featured, home_grid_position, photos"
+  "id, slug, item_name, brand, list_price, from_price, collections, era, palette, blurb, description, details, sizes, variants, featured, home_grid_position, photos"
 
 type Row = {
+  id: string
   slug: string | null
   item_name: string
   brand: string | null
@@ -31,6 +32,7 @@ type Row = {
 
 function dbItemToProduct(row: Row): Product {
   return {
+    id: row.id,
     slug: row.slug!,
     name: row.item_name,
     designer: row.brand ?? undefined,

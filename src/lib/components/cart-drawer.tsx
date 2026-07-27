@@ -6,7 +6,7 @@ import clsx from "clsx"
 import { useCart } from "@/lib/cart/cart-context"
 
 export default function CartDrawer() {
-  const { isOpen, close, lines, count, subtotal, setQty, remove } = useCart()
+  const { isOpen, close, resolved, count, subtotal, setQty, remove } = useCart()
 
   return (
     <div
@@ -45,7 +45,7 @@ export default function CartDrawer() {
           </button>
         </header>
 
-        {lines.length === 0 ? (
+        {resolved.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
             <p className="font-display text-2xl text-ink">Your bag is empty.</p>
             <p className="mt-3 max-w-xs text-sm text-ink-muted">
@@ -62,36 +62,49 @@ export default function CartDrawer() {
         ) : (
           <>
             <ul className="flex-1 divide-y divide-ink/10 overflow-y-auto px-7">
-              {lines.map((l, i) => {
+              {resolved.map((l, i) => {
+                const href = l.product ? `/shop/${l.product.slug}` : "/shop"
                 return (
-                  <li key={`${l.slug}-${l.size}-${l.variant}-${l.added}`} className="flex gap-5 py-6">
+                  <li
+                    key={`${l.itemId}-${l.size}-${l.variant}-${l.added}`}
+                    className={clsx("flex gap-5 py-6", l.unavailable && "opacity-60")}
+                  >
                     <Link
-                      href={`/shop/${l.slug}`}
+                      href={href}
                       onClick={close}
                       className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-bone-200"
                     >
-                      {l.image && (
+                      {l.product?.image && (
                         <Image
-                          src={l.image}
-                          alt={l.name}
+                          src={l.product.image}
+                          alt={l.product.name}
                           fill
                           sizes="96px"
-                          className="object-cover"
+                          className={clsx("object-cover", l.unavailable && "grayscale")}
                         />
                       )}
                     </Link>
                     <div className="flex flex-1 flex-col">
                       <div className="flex items-baseline justify-between gap-3">
                         <Link
-                          href={`/shop/${l.slug}`}
+                          href={href}
                           onClick={close}
                           className="font-display text-base leading-tight hover:text-brass"
                         >
-                          {l.name}
+                          {l.product?.name ?? "This piece"}
                         </Link>
-                        <span className="shrink-0 text-sm tabular-nums">${l.price * l.qty}</span>
+                        {l.product && (
+                          <span className="shrink-0 text-sm tabular-nums">
+                            ${l.product.price * l.qty}
+                          </span>
+                        )}
                       </div>
-                      {(l.size || l.variant) && (
+                      {l.unavailable && (
+                        <p className="mt-1 text-[0.7rem] uppercase tracking-widest text-clay">
+                          No longer available
+                        </p>
+                      )}
+                      {!l.unavailable && (l.size || l.variant) && (
                         <p className="mt-1 text-[0.7rem] uppercase tracking-widest text-ink-muted">
                           {l.variant && <>{l.variant}</>}
                           {l.variant && l.size && <span> · </span>}
@@ -99,7 +112,12 @@ export default function CartDrawer() {
                         </p>
                       )}
                       <div className="mt-auto flex items-center justify-between pt-3">
-                        <div className="flex items-center border border-ink/20 text-sm">
+                        <div
+                          className={clsx(
+                            "flex items-center border border-ink/20 text-sm",
+                            l.unavailable && "invisible",
+                          )}
+                        >
                           <button
                             onClick={() => setQty(i, l.qty - 1)}
                             aria-label="Decrease quantity"

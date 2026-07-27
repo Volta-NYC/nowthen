@@ -6,6 +6,8 @@
 // without dragging server-only Supabase code into the browser bundle.
 
 export type Product = {
+  /** `inventory_items.id` — what cart rows reference. */
+  id: string;
   slug: string;
   name: string;
   designer?: string;

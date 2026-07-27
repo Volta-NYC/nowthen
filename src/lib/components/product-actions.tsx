@@ -22,14 +22,7 @@ export default function ProductActions({ product }: { product: Product }) {
       return
     }
     setError(null)
-    add({
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      image: product.images[0],
-      size,
-      variant,
-    })
+    add({ itemId: product.id, size, variant })
   }
 
   return (
