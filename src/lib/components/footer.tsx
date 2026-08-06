@@ -76,12 +76,12 @@ export default function Footer() {
           <p>
             Site by{" "}
             <a
-              href="https://nyc.voltanpo.org"
+              href="https://www.novusnyc.org/"
               target="_blank"
               rel="noreferrer"
-              className="link-underline text-ink-soft"
+              className="link-underline text-[#F6B78D] hover:text-[#F6B78D]"
             >
-              Volta NYC
+              Made by Novus
             </a>
           </p>
         </div>
