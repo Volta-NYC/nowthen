@@ -8,6 +8,7 @@ import {
 } from "react"
 import type { Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
+import { isOwnerRole, isStaffRole } from "@/lib/admin/roles"
 
 type AuthContextValue = {
   session: Session | null
@@ -19,7 +20,9 @@ type AuthContextValue = {
    * the data itself, so a tampered value here reveals nothing.
    */
   role: string | null
+  /** True for admins *and* owners — owners inherit every admin power. */
   isAdmin: boolean
+  isOwner: boolean
   signOut: () => Promise<void>
 }
 
@@ -89,7 +92,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, loading, role, isAdmin: role === "admin", signOut }}
+      value={{
+        session,
+        loading,
+        role,
+        isAdmin: isStaffRole(role),
+        isOwner: isOwnerRole(role),
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import AdminTopbar from "@/lib/components/admin/admin-topbar"
+import { isOwnerRole, isStaffRole } from "@/lib/admin/roles"
 
 export default async function AdminLayout({
   children,
@@ -22,11 +23,11 @@ export default async function AdminLayout({
     .eq("id", userId)
     .single()
 
-  if (profile?.role !== "admin") redirect("/")
+  if (!isStaffRole(profile?.role)) redirect("/")
 
   return (
     <div className="min-h-screen bg-bone-50">
-      <AdminTopbar email={email} />
+      <AdminTopbar email={email} isOwner={isOwnerRole(profile?.role)} />
       <main>{children}</main>
     </div>
   )

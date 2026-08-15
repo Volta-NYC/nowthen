@@ -4,7 +4,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
-export default function AdminTopbar({ email }: { email: string }) {
+export default function AdminTopbar({
+  email,
+  isOwner,
+}: {
+  email: string
+  isOwner: boolean
+}) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -21,9 +27,18 @@ export default function AdminTopbar({ email }: { email: string }) {
           <Link href="/" className="font-display text-lg text-ink">
             NOW + THEN
           </Link>
-          <span className="text-[0.7rem] uppercase tracking-widest text-ink-muted">
-            Inventory
-          </span>
+          <nav className="flex items-center gap-4 text-[0.7rem] uppercase tracking-widest">
+            <Link href="/admin/inventory" className="text-ink-muted hover:text-brass">
+              Inventory
+            </Link>
+            {/* Owner-only, and the /admin/team page re-checks server-side —
+                hiding a link is not access control. */}
+            {isOwner && (
+              <Link href="/admin/team" className="text-ink-muted hover:text-brass">
+                Team
+              </Link>
+            )}
+          </nav>
         </div>
         <div className="flex items-center gap-5 text-[0.7rem] uppercase tracking-widest">
           <span className="text-ink-muted">{email}</span>
